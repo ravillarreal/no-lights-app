@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN ?? ''
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:8000'
+const API_BASE = '/api'
 const RADIUS_METERS = 500
 const ALERT_THRESHOLD = 3
 const DEFAULT_CENTER = [-58.3816, -34.6037] // Buenos Aires — cambiar según tu ciudad
