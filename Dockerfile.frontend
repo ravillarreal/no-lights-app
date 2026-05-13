@@ -1,0 +1,11 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Instalar dependencias en una capa separada para aprovechar el cache de Docker
+COPY src/frontend/package.json src/frontend/package-lock.json* ./
+RUN npm install
+
+# El código fuente se monta como volumen en desarrollo (ver docker-compose.yml)
+# node_modules se mantiene en un volumen nombrado para no ser pisado por el bind mount
+CMD ["npm", "run", "dev"]

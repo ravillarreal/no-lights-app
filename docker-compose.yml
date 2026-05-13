@@ -1,0 +1,53 @@
+services:
+
+  redis_db:
+    image: redis:7-alpine
+    container_name: no_lights_redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    # Redis no necesita volumen persistente — los datos son in-memory por diseño
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: no_lights_backend
+    restart: unless-stopped
+    depends_on:
+      redis_db:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis_db
+      REDIS_PORT: "6379"
+      SEARCH_RADIUS_KM: ${SEARCH_RADIUS_KM}
+    ports:
+      - "8000:8000"
+    volumes:
+      # :Z instruye a SELinux para re-etiquetar el contexto de seguridad del bind mount
+      - ./src/backend:/app:Z
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: no_lights_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+      VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN}
+    ports:
+      - "3000:3000"
+    volumes:
+      # :Z para SELinux en el bind mount del código fuente
+      - ./src/frontend:/app:Z
+      # Volumen nombrado para node_modules — evita que el bind mount lo sobreescriba
+      - frontend_node_modules:/app/node_modules
+
+volumes:
+  frontend_node_modules:
