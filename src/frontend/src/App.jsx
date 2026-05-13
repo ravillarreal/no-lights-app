@@ -29,6 +29,17 @@ export default function App() {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const centerRef = useRef(DEFAULT_CENTER)
+  const [usuarioId] = useState(() => {
+    let id = localStorage.getItem('usuario_id')
+    if (!id) {
+      id = `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+      localStorage.setItem('usuario_id', id)
+    }
+    return id
+  })
+  const [hasActiveReport, setHasActiveReport] = useState(
+    () => localStorage.getItem('has_active_report') === 'true'
+  )
   const [reportCount, setReportCount] = useState(0)
   const [reporting, setReporting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -213,20 +224,25 @@ export default function App() {
     queryRadius(pos)
   }
 
-  // ─── Reportar corte ───────────────────────────────────────────────────────
+  // ─── Reporte / cancelar reporte ──────────────────────────────────────────
 
-  async function reportarCorte() {
+  async function toggleReport() {
     if (reporting) return
     setReporting(true)
     const [longitud, latitud] = centerRef.current
-    const usuario_id = `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
+    // tiene_luz: true  → el usuario recuperó luz → eliminar reporte de Redis
+    // tiene_luz: false → el usuario reporta corte → agregar a Redis
+    const tiene_luz = hasActiveReport
     try {
       const res = await fetch(`${API_BASE}/reportar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario_id, longitud, latitud, tiene_luz: false }),
+        body: JSON.stringify({ usuario_id: usuarioId, longitud, latitud, tiene_luz }),
       })
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const newState = !hasActiveReport
+      setHasActiveReport(newState)
+      localStorage.setItem('has_active_report', String(newState))
       await queryRadius(centerRef.current)
     } catch (err) {
       console.error('Error al reportar:', err)
@@ -283,13 +299,20 @@ export default function App() {
         </span>
       </div>
 
-      {/* Botón flotante */}
+      {/* Botón flotante — cambia según estado del reporte activo */}
       <button
-        onClick={reportarCorte}
+        onClick={toggleReport}
         disabled={reporting}
-        style={{ ...styles.fab, opacity: reporting ? 0.6 : 1 }}
+        style={{
+          ...(hasActiveReport ? styles.fabLight : styles.fab),
+          opacity: reporting ? 0.6 : 1,
+        }}
       >
-        {reporting ? 'Enviando…' : '⚡ Reportar Corte de Luz'}
+        {reporting
+          ? 'Enviando…'
+          : hasActiveReport
+            ? '💡 Ya tengo luz'
+            : '⚡ Reportar Corte de Luz'}
       </button>
     </div>
   )
@@ -383,6 +406,26 @@ const styles = {
     letterSpacing: 0.4,
     boxShadow: '0 6px 20px rgba(255,61,0,0.5)',
     transition: 'opacity 0.2s ease, transform 0.15s ease',
-    WebkitTapHighlightColor: 'transparent', // evita el flash azul en tap móvil
+    WebkitTapHighlightColor: 'transparent',
+  },
+  fabLight: {
+    position: 'absolute',
+    bottom: 'calc(36px + env(safe-area-inset-bottom, 0px))',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    zIndex: 10,
+    background: 'linear-gradient(135deg, #2e7d32, #1b5e20)',
+    color: '#fff',
+    border: 'none',
+    borderRadius: 28,
+    padding: '15px 32px',
+    fontSize: 15,
+    fontWeight: 700,
+    cursor: 'pointer',
+    whiteSpace: 'nowrap',
+    letterSpacing: 0.4,
+    boxShadow: '0 6px 20px rgba(46,125,50,0.55)',
+    transition: 'opacity 0.2s ease',
+    WebkitTapHighlightColor: 'transparent',
   },
 }
