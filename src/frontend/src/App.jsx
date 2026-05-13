@@ -226,29 +226,65 @@ export default function App() {
 
   // ─── Reporte / cancelar reporte ──────────────────────────────────────────
 
+  async function sendReport(longitud, latitud, tiene_luz) {
+    const res = await fetch(`${API_BASE}/reportar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ usuario_id: usuarioId, longitud, latitud, tiene_luz }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  }
+
   async function toggleReport() {
     if (reporting) return
     setReporting(true)
-    const [longitud, latitud] = centerRef.current
-    // tiene_luz: true  → el usuario recuperó luz → eliminar reporte de Redis
-    // tiene_luz: false → el usuario reporta corte → agregar a Redis
-    const tiene_luz = hasActiveReport
-    try {
-      const res = await fetch(`${API_BASE}/reportar`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuario_id: usuarioId, longitud, latitud, tiene_luz }),
-      })
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const newState = !hasActiveReport
-      setHasActiveReport(newState)
-      localStorage.setItem('has_active_report', String(newState))
-      await queryRadius(centerRef.current)
-    } catch (err) {
-      console.error('Error al reportar:', err)
-    } finally {
-      setReporting(false)
+
+    // "Ya tengo luz" — no necesita GPS, el backend solo usa usuario_id para zrem
+    if (hasActiveReport) {
+      const [longitud, latitud] = centerRef.current
+      try {
+        await sendReport(longitud, latitud, true)
+        setHasActiveReport(false)
+        localStorage.setItem('has_active_report', 'false')
+        await queryRadius(centerRef.current)
+      } catch (err) {
+        console.error('Error al cancelar reporte:', err)
+      } finally {
+        setReporting(false)
+      }
+      return
     }
+
+    // "Reportar corte" — pide GPS real antes de enviar
+    if (!navigator.geolocation) {
+      alert('Tu navegador no soporta geolocalización.')
+      setReporting(false)
+      return
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const pos = [coords.longitude, coords.latitude]
+        centerRef.current = pos
+        mapRef.current?.flyTo({ center: pos, zoom: 15 })
+        updateCircle(pos)
+        try {
+          await sendReport(pos[0], pos[1], false)
+          setHasActiveReport(true)
+          localStorage.setItem('has_active_report', 'true')
+          await queryRadius(pos)
+        } catch (err) {
+          console.error('Error al reportar:', err)
+        } finally {
+          setReporting(false)
+        }
+      },
+      (err) => {
+        console.error('GPS denegado o timeout:', err)
+        setReporting(false)
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 },
+    )
   }
 
   // ─── Render ───────────────────────────────────────────────────────────────
@@ -309,10 +345,8 @@ export default function App() {
         }}
       >
         {reporting
-          ? 'Enviando…'
-          : hasActiveReport
-            ? '💡 Ya tengo luz'
-            : '⚡ Reportar Corte de Luz'}
+          ? hasActiveReport ? 'Enviando…' : '📍 Obteniendo ubicación…'
+          : hasActiveReport ? '💡 Ya tengo luz' : '⚡ Reportar Corte de Luz'}
       </button>
     </div>
   )
