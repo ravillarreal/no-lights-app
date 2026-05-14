@@ -47,6 +47,18 @@ export default function MapPage() {
   const [hoveredIdx,    setHoveredIdx]    = useState(-1)
   const isAlert = reportCount >= ALERT_THRESHOLD
 
+  // ─── Sincroniza estado del reporte activo desde Redis al abrir la app ─────
+  useEffect(() => {
+    if (!usuarioId) return
+    fetch(`${API_BASE}/estado-reporte?usuario_id=${encodeURIComponent(usuarioId)}`)
+      .then(r => r.json())
+      .then(({ tiene_reporte_activo }) => {
+        setHasActiveReport(tiene_reporte_activo)
+        localStorage.setItem(reportKey, String(tiene_reporte_activo))
+      })
+      .catch(() => {})
+  }, [usuarioId, reportKey])
+
   // ─── Consulta API ─────────────────────────────────────────────────────────
 
   const queryRadius = useCallback(async (coords) => {

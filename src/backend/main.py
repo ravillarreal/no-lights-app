@@ -417,6 +417,13 @@ async def stats_by_zone(field: str = "neighborhood", days: int = 30, limit: int 
         raise HTTPException(500, detail=str(exc))
 
 
+@app.get("/estado-reporte")
+async def estado_reporte(usuario_id: str) -> dict:
+    # zscore devuelve None si el miembro no existe en el sorted set
+    score = await redis_client.zscore(GEO_KEY, usuario_id)
+    return {"tiene_reporte_activo": score is not None}
+
+
 @app.get("/consultar-radio", response_model=RadiusResponse)
 async def consultar_radio(lon: float, lat: float) -> RadiusResponse:
     if not (-180.0 <= lon <= 180.0) or not (-90.0 <= lat <= 90.0):
