@@ -139,13 +139,15 @@ export default function LandingPage() {
       </section>
 
       {/* ── Stats ── */}
-      <section style={s.statsRow}>
+      <section style={{ position: 'relative', zIndex: 10, padding: '0 24px', marginBottom: 80 }}>
+      <div style={s.statsRow}>
         {STATS.map(st => (
           <div key={st.label} style={s.statCard}>
             <div style={{ fontSize: 28, fontWeight: 900, color: '#f9fafb', letterSpacing: -1 }}>{st.value}</div>
             <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4, fontWeight: 500 }}>{st.label}</div>
           </div>
         ))}
+      </div>
       </section>
 
       {/* ── Cómo funciona ── */}
@@ -331,7 +333,7 @@ const s = {
     position: 'relative', zIndex: 10,
     textAlign: 'center',
     padding: '72px 24px 56px',
-    maxWidth: 780, margin: '0 auto',
+    maxWidth: 960, margin: '0 auto',
   },
   badge: {
     display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -371,15 +373,13 @@ const s = {
 
   // Stats
   statsRow: {
-    position: 'relative', zIndex: 10,
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
     gap: 1,
-    maxWidth: 800, margin: '0 auto 80px',
+    maxWidth: 1200, margin: '0 auto',
     background: 'rgba(255,255,255,0.04)',
     border: '1px solid rgba(255,255,255,0.06)',
     borderRadius: 18, overflow: 'hidden',
-    marginLeft: 24, marginRight: 24,
   },
   statCard: {
     padding: '28px 20px', textAlign: 'center',
@@ -389,7 +389,7 @@ const s = {
   // Sections
   section: {
     position: 'relative', zIndex: 10,
-    maxWidth: 960, margin: '0 auto 80px',
+    maxWidth: 1200, margin: '0 auto 80px',
     padding: '0 24px',
   },
   sectionTitle: {
@@ -463,7 +463,7 @@ const s = {
   telegramSection: {
     position: 'relative', zIndex: 10,
     padding: '0 24px 80px',
-    maxWidth: 700, margin: '0 auto',
+    maxWidth: 860, margin: '0 auto',
   },
   telegramCard: {
     background: 'linear-gradient(135deg, rgba(42,171,238,0.1) 0%, rgba(33,150,243,0.05) 100%)',
@@ -505,7 +505,7 @@ const s = {
     background: 'rgba(0,0,0,0.3)',
   },
   footerInner: {
-    maxWidth: 960, margin: '0 auto',
+    maxWidth: 1200, margin: '0 auto',
     padding: '48px 32px 32px',
     display: 'flex', justifyContent: 'space-between',
     flexWrap: 'wrap', gap: 40,
@@ -522,7 +522,7 @@ const s = {
     textDecoration: 'none',
   },
   footerBottom: {
-    maxWidth: 960, margin: '0 auto',
+    maxWidth: 1200, margin: '0 auto',
     padding: '20px 32px',
     borderTop: '1px solid rgba(255,255,255,0.04)',
     display: 'flex', justifyContent: 'space-between',
