@@ -9,7 +9,7 @@ export default function LoginPage() {
 
   function handleSuccess(cred) {
     login(jwtDecode(cred.credential))
-    navigate('/', { replace: true })
+    navigate('/mapa', { replace: true })
   }
 
   return (

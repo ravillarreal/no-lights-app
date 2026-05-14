@@ -78,7 +78,7 @@ export default function Sidebar({ open, onClose }) {
 
         {/* Nav */}
         <nav style={{ padding: '0 8px' }}>
-          <NavItem to="/"          icon="🗺️" label="Mapa"      sub="Ver y reportar cortes"       active={location.pathname === '/'}          onClick={onClose} />
+          <NavItem to="/mapa"      icon="🗺️" label="Mapa"      sub="Ver y reportar cortes"       active={location.pathname === '/mapa'}      onClick={onClose} />
           <NavItem to="/dashboard" icon="📊" label="Dashboard" sub="Estadísticas y reportería"   active={location.pathname === '/dashboard'} onClick={onClose} />
         </nav>
 
