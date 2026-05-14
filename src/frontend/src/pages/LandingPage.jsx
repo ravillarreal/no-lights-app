@@ -111,15 +111,16 @@ export default function LandingPage() {
 
 const s = {
   root: {
-    minHeight: '100dvh',
+    height: '100%',
+    overflowY: 'auto',
+    overflowX: 'hidden',
     background: '#080c10',
     fontFamily: "'Segoe UI', system-ui, sans-serif",
     color: '#f9fafb',
     position: 'relative',
-    overflowX: 'hidden',
   },
   blob: {
-    position: 'fixed',
+    position: 'absolute',
     width: '70vw',
     height: '70vw',
     borderRadius: '50%',
