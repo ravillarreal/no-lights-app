@@ -82,3 +82,19 @@ El sufijo `:Z` en los volúmenes (`./src/backend:/app:Z`) le indica a Docker que
 re-etiquete el contexto SELinux del directorio local como `container_file_t`,
 permitiendo que el proceso dentro del contenedor lea y escriba los archivos.
 Sin `:Z`, SELinux bloquea el acceso y el hot-reload no funciona en Fedora/RHEL.
+
+
+# Platanus Build Night ft. Anthropic
+
+## 2026 - Caracas, Venezuela
+
+---
+
+This is the code repository for ravillarreal at Platanus Build Night 26, in Caracas.
+
+* Full name: Rafael Angel Villarreal Soturno
+* Github username: ravillarreal
+
+Remember you should push the code before the deadline and make sure its deployed.
+
+Good luck 🍌🚀
