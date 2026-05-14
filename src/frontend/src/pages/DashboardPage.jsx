@@ -108,11 +108,12 @@ export default function DashboardPage() {
                   <YAxis type="category" dataKey="zone" width={110} tick={{ fill: '#9ca3af', fontSize: 11 }} tickLine={false} axisLine={false}
                     tickFormatter={v => v.length > 16 ? v.slice(0, 15) + '…' : v} />
                   <Tooltip
+                    cursor={{ fill: 'rgba(255,255,255,0.04)' }}
                     contentStyle={{ background: '#111', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 10, fontSize: 13 }}
                     labelStyle={{ color: '#9ca3af' }} itemStyle={{ color: '#e5e7eb' }}
                     formatter={(v, n) => [v, n === 'outages' ? 'Cortes' : 'Min promedio']}
                   />
-                  <Bar dataKey="outages" fill="#3b82f6" radius={[0, 6, 6, 0]} maxBarSize={20} />
+                  <Bar dataKey="outages" fill="#3b82f6" radius={[0, 6, 6, 0]} maxBarSize={20} activeBar={{ fill: '#60a5fa' }} />
                 </BarChart>
               </ResponsiveContainer>
             )

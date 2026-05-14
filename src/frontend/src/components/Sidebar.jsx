@@ -85,6 +85,9 @@ export default function Sidebar({ open, onClose }) {
         {/* Spacer */}
         <div style={{ flex: 1 }} />
 
+        {/* Telegram bot card */}
+        <TelegramCard />
+
         {/* User */}
         <div style={{ padding: '16px 20px 24px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14 }}>
@@ -118,6 +121,92 @@ export default function Sidebar({ open, onClose }) {
         </div>
       </div>
     </>
+  )
+}
+
+function TelegramCard() {
+  const username = import.meta.env.VITE_TELEGRAM_BOT_USERNAME ?? ''
+  const href = username ? `https://t.me/${username.replace('@', '')}` : '#'
+
+  return (
+    <div style={{ padding: '0 12px 14px' }}>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: 'block',
+          textDecoration: 'none',
+          borderRadius: 14,
+          overflow: 'hidden',
+          position: 'relative',
+          background: 'linear-gradient(135deg, rgba(42,171,238,0.13) 0%, rgba(33,150,243,0.07) 100%)',
+          border: '1px solid rgba(42,171,238,0.22)',
+          padding: '14px 14px 13px',
+          transition: 'border-color 0.2s, background 0.2s',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.borderColor = 'rgba(42,171,238,0.5)'
+          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(42,171,238,0.2) 0%, rgba(33,150,243,0.12) 100%)'
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.borderColor = 'rgba(42,171,238,0.22)'
+          e.currentTarget.style.background = 'linear-gradient(135deg, rgba(42,171,238,0.13) 0%, rgba(33,150,243,0.07) 100%)'
+        }}
+      >
+        {/* Glow accent */}
+        <div style={{
+          position: 'absolute', top: -20, right: -20,
+          width: 80, height: 80, borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(42,171,238,0.18) 0%, transparent 70%)',
+          pointerEvents: 'none',
+        }} />
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11 }}>
+          {/* Icon */}
+          <div style={{
+            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            background: 'linear-gradient(145deg, #2AABEE, #1a8fd1)',
+            boxShadow: '0 4px 16px rgba(42,171,238,0.4)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            {/* Paper plane SVG — logo de Telegram */}
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M22 2L11 13" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </div>
+
+          {/* Text */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#e8f4fd', letterSpacing: -0.2 }}>
+              Bot de Alertas
+            </div>
+            <div style={{ fontSize: 11, color: '#5bb8f5', marginTop: 2, lineHeight: 1.3 }}>
+              Recibe avisos en Telegram
+            </div>
+          </div>
+
+          {/* Arrow */}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0, opacity: 0.6 }}>
+            <path d="M9 18l6-6-6-6" stroke="#2AABEE" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+
+        {/* Bottom tag */}
+        <div style={{
+          marginTop: 10,
+          paddingTop: 9,
+          borderTop: '1px solid rgba(42,171,238,0.12)',
+          display: 'flex', alignItems: 'center', gap: 5,
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#2AABEE', boxShadow: '0 0 6px #2AABEE', flexShrink: 0 }} />
+          <span style={{ fontSize: 10, color: '#5bb8f5', letterSpacing: 0.3 }}>
+            Activo · Notificaciones en tiempo real
+          </span>
+        </div>
+      </a>
+    </div>
   )
 }
 
