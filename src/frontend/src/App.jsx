@@ -84,6 +84,8 @@ export default function App() {
     })
     mapRef.current = map
 
+    map.dragRotate.disable()
+    map.touchZoomRotate.disableRotation()
     map.addControl(new mapboxgl.NavigationControl(), 'top-right')
 
     map.on('load', () => {
