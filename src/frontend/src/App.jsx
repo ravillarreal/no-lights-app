@@ -364,8 +364,8 @@ const styles = {
     position: 'absolute',
     top: 16,
     left: 16,
-    right: 56,           // deja espacio para los controles de navegación de Mapbox
-    zIndex: 10,
+    right: 56,
+    zIndex: 20,          // mayor que el badge (10) para que el dropdown lo tape
   },
   searchInput: {
     width: '100%',
