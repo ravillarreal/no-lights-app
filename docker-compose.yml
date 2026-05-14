@@ -9,7 +9,24 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-    # Redis no necesita volumen persistente — los datos son in-memory por diseño
+
+  postgres_db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: no_lights_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: nolights
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data:Z
+      # init.sql se ejecuta una sola vez al crear el volumen
+      - ./src/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:Z
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d nolights"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   backend:
     build:
@@ -20,14 +37,17 @@ services:
     depends_on:
       redis_db:
         condition: service_healthy
+      postgres_db:
+        condition: service_healthy
     environment:
       REDIS_HOST: redis_db
       REDIS_PORT: "6379"
       SEARCH_RADIUS_KM: ${SEARCH_RADIUS_KM}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/nolights
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
     ports:
       - "8000:8000"
     volumes:
-      # :Z instruye a SELinux para re-etiquetar el contexto de seguridad del bind mount
       - ./src/backend:/app:Z
 
   frontend:
@@ -43,10 +63,24 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # :Z para SELinux en el bind mount del código fuente
       - ./src/frontend:/app:Z
-      # Volumen nombrado para node_modules — evita que el bind mount lo sobreescriba
       - frontend_node_modules:/app/node_modules
+
+  telegram_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: no_lights_bot
+    restart: unless-stopped
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    environment:
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/nolights
+    volumes:
+      - ./src/bot:/app:Z
 
 volumes:
   frontend_node_modules:
+  postgres_data:
