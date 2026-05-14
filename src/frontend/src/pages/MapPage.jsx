@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl'
+import { useAuth } from '../contexts/AuthContext'
 
 mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN ?? ''
 
@@ -30,16 +31,14 @@ export default function MapPage() {
   const centerRef     = useRef(DEFAULT_CENTER)
   const searchTimerRef = useRef(null)
 
-  const [usuarioId] = useState(() => {
-    let id = localStorage.getItem('usuario_id')
-    if (!id) {
-      id = `u_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 7)}`
-      localStorage.setItem('usuario_id', id)
-    }
-    return id
-  })
+  const { user } = useAuth()
+  // Usa el ID único de Google (sub) como identificador del usuario en Redis
+  const usuarioId = user?.sub ?? user?.email
+  // Clave de localStorage por usuario para soportar múltiples cuentas en el mismo browser
+  const reportKey = `has_active_report_${usuarioId}`
+
   const [hasActiveReport, setHasActiveReport] = useState(
-    () => localStorage.getItem('has_active_report') === 'true'
+    () => localStorage.getItem(`has_active_report_${user?.sub ?? user?.email}`) === 'true'
   )
   const [reportCount,   setReportCount]   = useState(0)
   const [reporting,     setReporting]     = useState(false)
@@ -215,7 +214,7 @@ export default function MapPage() {
       try {
         await sendReport(lon, lat, true)
         setHasActiveReport(false)
-        localStorage.setItem('has_active_report', 'false')
+        localStorage.setItem(reportKey, 'false')
         await queryRadius(centerRef.current)
       } catch (e) { console.error(e) }
       finally { setReporting(false) }
@@ -237,7 +236,7 @@ export default function MapPage() {
         try {
           await sendReport(pos[0], pos[1], false)
           setHasActiveReport(true)
-          localStorage.setItem('has_active_report', 'true')
+          localStorage.setItem(reportKey, 'true')
           await queryRadius(pos)
         } catch (e) { console.error(e) }
         finally { setReporting(false) }
