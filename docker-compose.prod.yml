@@ -1,0 +1,87 @@
+services:
+
+  redis_db:
+    image: redis:7-alpine
+    container_name: nolights_redis
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  postgres_db:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: nolights_postgres
+    restart: always
+    environment:
+      POSTGRES_DB: nolights
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./src/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d nolights"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend.prod
+    container_name: nolights_backend
+    restart: always
+    depends_on:
+      redis_db:
+        condition: service_healthy
+      postgres_db:
+        condition: service_healthy
+    environment:
+      REDIS_HOST: redis_db
+      REDIS_PORT: "6379"
+      SEARCH_RADIUS_KM: ${SEARCH_RADIUS_KM}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/nolights
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend.prod
+      args:
+        VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN}
+        VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
+        VITE_TELEGRAM_BOT_USERNAME: ${VITE_TELEGRAM_BOT_USERNAME}
+    container_name: nolights_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+  telegram_bot:
+    build:
+      context: .
+      dockerfile: Dockerfile.bot
+    container_name: nolights_bot
+    restart: always
+    depends_on:
+      postgres_db:
+        condition: service_healthy
+    environment:
+      TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres_db:5432/nolights
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: nolights_tunnel
+    restart: always
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - frontend
+
+volumes:
+  postgres_data:

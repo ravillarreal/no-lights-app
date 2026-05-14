@@ -4,6 +4,9 @@ import basicSsl from '@vitejs/plugin-basic-ssl'
 
 export default defineConfig({
   plugins: [react(), basicSsl()],
+  optimizeDeps: {
+    include: ['mapbox-gl'],
+  },
   server: {
     host: '0.0.0.0',
     port: 3000,
