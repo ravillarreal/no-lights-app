@@ -60,6 +60,7 @@ services:
       - backend
     environment:
       VITE_MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN}
+      VITE_GOOGLE_CLIENT_ID: ${VITE_GOOGLE_CLIENT_ID}
     ports:
       - "3000:3000"
     volumes:
